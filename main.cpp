@@ -34,8 +34,58 @@ int main()
     float phase_input[column_no][row_no][parent_no]={{0}};
     float gain_output[column_no][row_no][child_no]={{0}};
     float phase_output[column_no][row_no][child_no]={{0}};
-    int neutrino[parent_no]={5,5};
-    int neutrino_total=10;
+    float neutrino[parent_no]={0};
+    int max_neu_pos[parent_no]={0};
+    float neutrino_total=10;
+
+    //Find Files
+    int file_cnt=0;
+    while(1)
+    {
+        FILE *fptr;
+        char filename[100];
+        sprintf(filename,"C:\\Users\\Jack\\Documents\\CalPoly\\NuRad\\bicone_NEC+_%i.txt",file_cnt);
+        if (fptr=fopen(filename,"r"))
+        {
+            int j=0; float neu=-1;
+            while((line=fgets(buffer,sizeof(buffer),fptr)) != NULL)   //Runs down lines
+           {
+            if (j>=160147)
+            {
+                int i=0;
+                word = strtok(line," \t");    //Separate lines into words
+                while(word != NULL)
+                {
+                    val=strtof(word,NULL);  //Grabs word as a floating-point value
+                    if (i==3)
+                    {
+                        neu=val; break;
+                    }
+                    i++;
+                    word = strtok(NULL," \t");
+                }
+            }
+            j++;
+           }
+           if (neu>neutrino[0])
+           {
+               neutrino[1]=neutrino[0]; max_neu_pos[1]=max_neu_pos[0];
+               neutrino[0]=neu; max_neu_pos[0]=file_cnt;
+           }
+           else if ( (neu>neutrino[1]) && (neu<neutrino[0]) )
+           {
+               neutrino[1]=neu; max_neu_pos[1]=file_cnt;
+           }
+        }
+        else
+        {
+            neutrino_total=neutrino[0]+neutrino[1];
+            break;
+        }
+        file_cnt++;
+    }
+
+    //Pull data from input ("parent") files
     for (int k=0;k<parent_no;k++)
     {
         char filename_name[200];
@@ -215,19 +265,19 @@ char writename[200]="C:\\Users\\Jack\\Documents\\CalPoly\\NuRad\\SphereHarm.txt"
 FILE *fptr;
 
 //Give file a unique name
-int iter=1;
+int file_cnt=1;
 while(1)
 {
     if ((fptr = fopen(writename, "r")) && k>0 )
     {
         fclose(fptr);
-        sprintf(writename,"C:\\Users\\Jack\\Documents\\CalPoly\\NuRad\\SphereHarm-%i.txt",iter);
+        sprintf(writename,"C:\\Users\\Jack\\Documents\\CalPoly\\NuRad\\SphereHarm-%i.txt",file_cnt);
     }
     else
     {
         break;
     }
-    iter++;
+    file_cnt++;
 }
 
 //Open said file
@@ -302,7 +352,7 @@ for (int k=0;k<parent_no;k++)
 }
 fclose(fptr2);
 
-printf("\n%i\t%i\n%E\t%E\n%E\t%E",column_no,row_no,min_val[0],max_val[0],min_val[1],max_val[1]);
+printf("\n%f\t%f\n%i\t%i\n",neutrino[0],neutrino[1],max_neu_pos[0],max_neu_pos[1]);
 printf("\n\nSIMULATION COMPLETE\n~~~~~~~~~~~~~~~~~~~\n");
 //int status = system("SphereHarm_to_NEC+.exe"); //Call program to continue loop
    return 0 ;
